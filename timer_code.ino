@@ -1,22 +1,16 @@
 #include <Adafruit_NeoPixel.h>
-#ifdef __AVR__
-  #include <avr/power.h>
-#endif
 
 #define PIN 7
-#define NPIX 120
-#define TIME 10
+//#define NPIX 120
+//#define TIME 10
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NPIX, PIN, NEO_GRB + NEO_KHZ800);
 
-
-int led_per_min = NPIX/TIME;
-int time_per_led = 60000/led_per_min;
+//int led_per_min = NPIX/TIME;
+//int time_per_led = 60000/led_per_min;
 
 unsigned long start_time;
 unsigned long stop_time;
-//unsigned long start_pixel_time;
-//unsigned long stop_pixel_time;
 
 void setup() {
   Serial.begin(9600); 
@@ -36,32 +30,22 @@ void loop() {
 }
 
 void timer() {
-//  Serial.println("start");
-//  start_time = millis();
   for (int i=0; i<=NPIX; i++) {
-//    start_pixel_time = millis();
-//    Serial.print("PIXEL: ");
-//    Serial.println(i+1);
     for (int j=0; j<=250; j++) {
-      delay(20);
+      // delay calculated as follows: 
+      // time per LED is: 60 seconds devided the Amount of LEDs (120) multiplied by 10 minutes (the amount of time the timer has to last)
+      // time per led = 60/120*10 = 5 seconds.
+      // delay is then 5000 ms / 250 (from 0 to full brightness) to turn on fade on a led in 5 seconds
+      // delay = 5000/250 = 20ms
+      delay(20); 
       strip.setPixelColor(i, strip.Color(j, j, j));
       strip.show();
-    }
-//  stop_pixel_time = millis();
-//  Serial.print("verstreken tijd: ");
-//  Serial.print((stop_pixel_time - start_pixel_time)/1000);
-//  Serial.println(" seconden");    
+    } 
   if ((i+1) % led_per_min == 0){
-//    Serial.println("minute passed");
-//    stop_time = millis();
-//    Serial.print("verstreken tijd: ");
-//    Serial.print((stop_time - start_time)/1000);
-//    Serial.println(" seconden"); 
     for (int k=0; k<=i; k++) {
       strip.setPixelColor(k-1, strip.Color(0, 0, 255));
     }
     strip.show();
-//    start_time = millis();
   }
  }
 }
