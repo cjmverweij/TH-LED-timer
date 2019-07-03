@@ -1,28 +1,22 @@
 #include <Adafruit_NeoPixel.h>
 
 #define PIN 7
-//#define NPIX 120
-//#define TIME 10
+#define NPIX 120
+#define TIME 10
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NPIX, PIN, NEO_GRB + NEO_KHZ800);
 
-//int led_per_min = NPIX/TIME;
-//int time_per_led = 60000/led_per_min;
-
-unsigned long start_time;
-unsigned long stop_time;
-
 void setup() {
-  Serial.begin(9600); 
   strip.begin();
-  strip.setBrightness(50);
+  strip.setBrightness(250);
   strip.show(); // Initialize all pixels to 'off'
-  start_time = millis();
-  timer();
-  stop_time = millis();
-  Serial.print("verstreken tijd: ");
-  Serial.print((stop_time - start_time)/1000);
-  Serial.println(" seconden"); 
+
+  timer();  // do the timer once
+
+  // turn the brightness down, otherwise the animation crashes 
+  // (probably due to pulling to much current)
+  strip.setBrightness(100);
+  strip.show();
 }
 
 void loop() {
@@ -30,24 +24,34 @@ void loop() {
 }
 
 void timer() {
+  // delay calculated as follows: 
+  // time per LED is: 60 seconds devided the Amount of LEDs (120) multiplied by 10 minutes (the amount of time the timer has to last)
+  // time per led = 60/120*10 = 5 seconds (5000 ms).
+//   int time_per_led = 600/NPIX*TIME;  // uncomment to test quickly
+  int time_per_led = 60000/NPIX*TIME;
+  int led_per_min = NPIX/TIME;
+  
   for (int i=0; i<=NPIX; i++) {
-    for (int j=0; j<=250; j++) {
-      // delay calculated as follows: 
-      // time per LED is: 60 seconds devided the Amount of LEDs (120) multiplied by 10 minutes (the amount of time the timer has to last)
-      // time per led = 60/120*10 = 5 seconds.
-      // delay is then 5000 ms / 250 (from 0 to full brightness) to turn on fade on a led in 5 seconds
-      // delay = 5000/250 = 20ms
-      delay(20); 
-      strip.setPixelColor(i, strip.Color(j, j, j));
-      strip.show();
-    } 
-  if ((i+1) % led_per_min == 0){
-    for (int k=0; k<=i; k++) {
-      strip.setPixelColor(k-1, strip.Color(0, 0, 255));
+    strip.setPixelColor(i, strip.Color(255, 255, 255));
+
+    // after a minute has passed set all the pixels up to that point to blue/black.
+    // except for the last minute
+    if (i % led_per_min == 0 && i != NPIX){
+      bool on = false;
+      for (int k=0; k<=i; k++) {
+        strip.setPixelColor(k-1, strip.Color(0, 0, 0));
+        if (on == true){
+          strip.setPixelColor(k-1, strip.Color(0, 0, 255));
+        }
+        if (k % led_per_min == 0){
+          on = !on;
+        }
+      }
     }
+    
     strip.show();
+    delay(time_per_led); 
   }
- }
 }
 
 void rainbow(uint8_t wait) {
