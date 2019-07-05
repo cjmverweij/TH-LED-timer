@@ -8,19 +8,15 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NPIX, PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
   strip.begin();
-  strip.setBrightness(250);
+  strip.setBrightness(200);
   strip.show(); // Initialize all pixels to 'off'
 
   timer();  // do the timer once
-
-  // turn the brightness down, otherwise the animation crashes 
-  // (probably due to pulling to much current)
-  strip.setBrightness(100);
-  strip.show();
 }
 
 void loop() {
-  rainbow(20);
+  alarm();
+  delay(20);
 }
 
 void timer() {
@@ -54,30 +50,32 @@ void timer() {
   }
 }
 
-void rainbow(uint8_t wait) {
-  uint16_t i, j;
-
-  for(j=0; j<256; j++) {
-    for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i+j) & 255));
+void alarm() {
+  // the alarm animation, which happens when the time runs out
+  int time_per_led = 10; 
+  int led_per_min = NPIX/TIME;
+  bool on = true;
+  for (int i=0; i<=NPIX; i++) {
+    strip.setPixelColor(i, strip.Color(0, 0, 0));
+    if (on == true){
+      strip.setPixelColor(i, strip.Color(255, 0, 0));
     }
+    if (i % led_per_min == 0){
+      on = !on;
+    }  
     strip.show();
-    delay(wait);
+    delay(time_per_led); 
+  }
+  on = false;
+  for (int i=0; i<=NPIX; i++) {
+    strip.setPixelColor(i, strip.Color(0, 0, 0));
+    if (on == true){
+      strip.setPixelColor(i, strip.Color(255, 0, 0));
+    }
+    if (i % led_per_min == 0){
+      on = !on;
+    }  
+    strip.show();
+    delay(time_per_led); 
   }
 }
-
-// Input a value 0 to 255 to get a color value.
-// The colours are a transition r - g - b - back to r.
-uint32_t Wheel(byte WheelPos) {
-  WheelPos = 255 - WheelPos;
-  if(WheelPos < 85) {
-    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  }
-  if(WheelPos < 170) {
-    WheelPos -= 85;
-    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  WheelPos -= 170;
-  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
-}
-
